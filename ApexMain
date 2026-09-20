@@ -1,0 +1,604 @@
+repeat task.wait() until game:IsLoaded()
+task.spawn(function()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local function detectExecutor()
+    if syn and syn.request then return "Synapse X" end
+    if KRNL_LOADED then return "Krnl" end
+    if fluxus then return "Fluxus" end
+    if Xeno then return "Xeno" end
+    if Wave then return "Wave" end
+    if identifyexecutor then local n=identifyexecutor(); if n~="" then return n end end
+    return "Unknown"
+end
+
+local executorName = detectExecutor()
+
+task.spawn(function()
+    local HS = game:GetService("HttpService")
+    local UIS = game:GetService("UserInputService")
+    local dev = (UIS.TouchEnabled and not UIS.KeyboardEnabled) and "Mobile" or "PC"
+    local gameName = ""
+    pcall(function() gameName=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
+    local WH = "https://discord.com/api/webhooks/1546088161921335358/v9YrvzSu3SQHK_vpXPjeqN_dNi-AV_LX6nMWLFSMPPbgsdh7_um2bt2MP4b5lgzQRZrp"
+    local body = '{"embeds":[{"title":"Apex RF","color":16777215,"fields":[{"name":"Player","value":"'..LocalPlayer.Name..'","inline":true},{"name":"Game","value":"'..gameName..'","inline":true},{"name":"Executor","value":"'..executorName..'","inline":true}],"footer":{"text":"Apex Rofootball"}}]}'
+    local opts = {Url=WH,Method="POST",Headers={["Content-Type"]="application/json"},Body=body}
+    if request then pcall(function() request(opts) end) return end
+    if http_request then pcall(function() http_request(opts) end) return end
+    pcall(function() HS:RequestAsync(opts) end)
+end)
+
+local UI_URL = "https://raw.githubusercontent.com/animesenpai606-dev/DonMillie/refs/heads/main/VeltraUI.lua"
+local ApexUI = loadstring(game:HttpGet(UI_URL,true))()
+local ui = ApexUI(LocalPlayer,Players,RunService,"rofootball")
+
+local notif=ui.notif
+local makeScrollPage=ui.makeScrollPage
+local secHdr=ui.secHdr
+local toggleRow=ui.toggleRow
+local makeSlider=ui.makeSlider
+local applyRow=ui.applyRow
+local inputRow=ui.inputRow
+local setSw=ui.setSw
+local addRCFANav=ui.addRCFANav
+local addSimpleNav=ui.addSimpleNav
+local finalizeNav=ui.finalizeNav
+local GREEN=ui.GREEN; local RED=ui.RED; local AC=ui.AC; local TM=ui.TM; local TW=ui.TW
+
+local function fireToServer(msg, val)
+    pcall(function()
+        local c=LocalPlayer.Character; if not c then return end
+        local hb=c:FindFirstChild("Hitbox"); if not hb then return end
+        local re=hb:FindFirstChild("RemoteEvent"); if not re then return end
+        re:FireServer({msg,val})
+    end)
+end
+
+-- RCFA
+local rcfaTargets = {
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheat") end,
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheat2") end,
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheatBackup") end,
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheatBackup1") end,    
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheatBackup2") end,
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("LocalAntiCheatBackup3") end,
+    function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("HitboxSync") end,
+    function() return LocalPlayer:FindFirstChild("PlayerScripts") and LocalPlayer.PlayerScripts:FindFirstChild("Magged") end,
+    function() return game:GetService("ServerScriptService"):FindFirstChild("AntiCheat") end,
+    function() return game:GetService("ServerScriptService"):FindFirstChild("AntiMag") end,
+    function() return game:GetService("ServerScriptService"):FindFirstChild("Cheater") end,
+    function()
+        local c=LocalPlayer.Character; if not c then return nil end
+        local h=c:FindFirstChild("Hitbox"); if not h then return nil end
+        return h:GetChildren()[11] or nil
+    end,
+}
+local function runRCFA()
+    for _, fn in ipairs(rcfaTargets) do
+        local ok, inst = pcall(fn)
+        if ok and inst then pcall(function() inst.Disabled = true end) end
+    end
+end
+task.spawn(runRCFA)
+LocalPlayer.CharacterAdded:Connect(function() task.wait(1); runRCFA() end)
+
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local function cleanHitbox(character)
+    local hitbox = character:FindFirstChild("Hitbox")
+    if not hitbox then
+        return
+    end
+
+    -- Delete HitboxSync
+    local hitboxSync = hitbox:FindFirstChild("HitboxSync")
+    if hitboxSync then
+        hitboxSync:Destroy()
+    end
+
+    -- Delete HitboxSync
+    local AntiCheat = hitbox:FindFirstChild("LocalAntiCheat")
+    if AntiCheat then
+        AntiCheat:Destroy()
+    end
+
+    -- Delete only the LocalScript with no children
+    for _, obj in ipairs(hitbox:GetChildren()) do
+        if obj:IsA("LocalScript") and #obj:GetChildren() == 0 then
+            obj:Destroy()
+            break
+        end
+    end
+end
+
+local function setup(character)
+    task.wait(1)
+    cleanHitbox(character)
+end
+
+if player.Character then
+    setup(player.Character)
+end
+
+-- QB page
+local QBPage,QBScroll = makeScrollPage()
+do
+    secHdr(QBScroll,"SERVER LAG")
+    local lagOn=false
+    local _,lagBg,lagKn=toggleRow(QBScroll,"Server Lag")
+    local function setLag(on)
+        lagOn=on; setSw(lagBg,lagKn,on)
+        if on then
+            notif("Server Lag","Enabled",GREEN)
+            task.spawn(function()
+                while lagOn do
+                    pcall(function()
+                        local c=LocalPlayer.Character; if not c then return end
+                        local hb=c:FindFirstChild("Hitbox"); if not hb then return end
+                        local re=hb:FindFirstChild("RemoteEvent"); if not re then return end
+                        for _=1,50 do
+                            re:FireServer({"BallCamera121"})
+                            re:FireServer({"Ball Camera2121"})
+                            re:FireServer({"GiveBallCam2121"})
+                        end
+                    end)
+                    task.wait(0.05)
+                end
+            end)
+        else
+            notif("Server Lag","Disabled",RED)
+        end
+    end
+    lagBg.MouseButton1Click:Connect(function() setLag(not lagOn) end)
+end
+
+-- Catching page
+local CatchPage,CatchScroll = makeScrollPage()
+do
+    secHdr(CatchScroll,"HITBOX MAGNET")
+    makeSlider(CatchScroll,"HITBOX SIZE",2,50,2,1,function(v)
+        pcall(function()
+            local c=LocalPlayer.Character; if not c then return end
+            local hb=c:FindFirstChild("Hitbox"); if not hb then return end
+            hb.Size=Vector3.new(v+3,v+5,v+3)
+        end)
+    end)
+
+    local vizOn=false; local vizPart=nil
+    local _,vizBg,vizKn=toggleRow(CatchScroll,"Show Hitbox Visual")
+    local function setViz(on)
+        vizOn=on; setSw(vizBg,vizKn,on)
+        if on then
+            RunService.Heartbeat:Connect(function()
+                if not vizOn then if vizPart then vizPart:Destroy(); vizPart=nil end return end
+                local c=LocalPlayer.Character; if not c then return end
+                local hb=c:FindFirstChild("Hitbox"); if not hb then return end
+                if not vizPart or not vizPart.Parent then
+                    vizPart=Instance.new("SelectionBox")
+                    vizPart.Color3=Color3.fromRGB(255,255,255)
+                    vizPart.LineThickness=0.05
+                    vizPart.SurfaceTransparency=0.75
+                    vizPart.SurfaceColor3=Color3.fromRGB(255,255,255)
+                    vizPart.Adornee=hb
+                    vizPart.Parent=workspace
+                end
+            end)
+        else
+            if vizPart then vizPart:Destroy(); vizPart=nil end
+        end
+    end
+    vizBg.MouseButton1Click:Connect(function() setViz(not vizOn) end)
+
+    secHdr(CatchScroll,"OP MAGNETS")
+    local opOn=false; local opRange=10; local opLoop=nil
+    local _,opBg,opKn=toggleRow(CatchScroll,"Enable OP Magnets")
+    makeSlider(CatchScroll,"MAGNET RANGE",1,100,10,1,function(v)
+        opRange=v
+        -- also update the restore size so ball-leave restores to this
+        userHitboxSize = Vector3.new(v+3, v+5, v+3)
+    end)
+    local function setOp(on)
+        opOn=on; setSw(opBg,opKn,on)
+        if on then
+            if opLoop then opLoop:Disconnect(); opLoop=nil end
+            opLoop=RunService.RenderStepped:Connect(function()
+                if not opOn then return end
+                local c=LocalPlayer.Character; if not c then return end
+                local hrp=c:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+                for _,v in next,workspace:GetChildren() do
+                    if v.Name=="Football" then
+                        pcall(function() v.CanCollide=false end)
+                        if (v.Position-hrp.Position).Magnitude<=opRange then
+                            pcall(function() v.CFrame=hrp.CFrame; firetouchinterest(hrp,v,0); firetouchinterest(hrp,v,0) end)
+                        end
+                    end
+                end
+            end)
+            notif("OP Magnets","Enabled",GREEN)
+        else
+            if opLoop then opLoop:Disconnect(); opLoop=nil end
+            notif("OP Magnets","Disabled",RED)
+        end
+    end
+    opBg.MouseButton1Click:Connect(function() setOp(not opOn) end)
+end
+
+-- Automation page
+local AutoPage,AutoScroll = makeScrollPage()
+local autoTuckEnabled=false; local autoTuckConn=nil; local autoTuckDelay=0.09
+do
+    secHdr(AutoScroll,"AUTO TUCK")
+    local _,atBg,atKn=toggleRow(AutoScroll,"Auto Tuck on Catch")
+    makeSlider(AutoScroll,"TUCK SPEED (1=slow 15=fast)",1,15,8,1,function(v)
+        autoTuckDelay=0.01+(0.5-0.01)*(1-(v-1)/14)
+    end)
+    local function hookTuck(char)
+        if autoTuckConn then autoTuckConn:Disconnect(); autoTuckConn=nil end
+        autoTuckConn=char.ChildAdded:Connect(function(child)
+            if not autoTuckEnabled then return end
+            if child.Name~="Football" or not child:IsA("Tool") then return end
+            -- only tuck if player is catching
+            local isCatching = false
+            pcall(function()
+                local cv = char:FindFirstChild("Hitbox") and char.Hitbox:FindFirstChild("CharacterValues")
+                local catchVal = cv and cv:FindFirstChild("Catching")
+                isCatching = catchVal and catchVal.Value == true
+            end)
+            if not isCatching then return end
+            local h=child:WaitForChild("Handle",2); if not h then return end
+            local re=h:WaitForChild("RemoteEvent",2); if not re then return end
+            if autoTuckDelay>0 then task.wait(autoTuckDelay) end
+            if not autoTuckEnabled or not child.Parent then return end
+            pcall(function() re:FireServer({"Tuck"}) end)
+        end)
+    end
+    local _setTuck
+    local function setTuck(on)
+        autoTuckEnabled=on; setSw(atBg,atKn,on)
+        if on then local c=LocalPlayer.Character; if c then hookTuck(c) end; notif("Auto Tuck","Enabled",GREEN)
+        else if autoTuckConn then autoTuckConn:Disconnect(); autoTuckConn=nil end; notif("Auto Tuck","Disabled",RED) end
+    end
+    _setTuck=setTuck
+    atBg.MouseButton1Click:Connect(function() setTuck(not autoTuckEnabled) end)
+    LocalPlayer.CharacterAdded:Connect(function(c) task.wait(1); runRCFA(); if autoTuckEnabled then hookTuck(c) end end)
+
+    secHdr(AutoScroll,"AUTO TRUCK")
+    local truckOn=false; local truckDist=10
+    local _,trBg,trKn=toggleRow(AutoScroll,"Auto Truck")
+    makeSlider(AutoScroll,"TRUCK RANGE",5,30,10,1,function(v) truckDist=v end)
+    local function setTruck(on)
+        truckOn=on; setSw(trBg,trKn,on)
+        notif("Auto Truck",on and "Enabled" or "Disabled",on and GREEN or RED)
+    end
+    trBg.MouseButton1Click:Connect(function() setTruck(not truckOn) end)
+    RunService.RenderStepped:Connect(function()
+        if not truckOn or not LocalPlayer.Character then return end
+        local char=LocalPlayer.Character
+        local fb=char:FindFirstChild("Football"); if not fb then return end
+        local h=fb:FindFirstChild("Handle"); if not h then return end
+        local re=h:FindFirstChild("RemoteEvent"); if not re then return end
+        local hrp=char:FindFirstChild("HumanoidRootPart"); if not hrp then return end
+        for _,p in ipairs(Players:GetPlayers()) do
+            if p~=LocalPlayer and p.Character then
+                local er=p.Character:FindFirstChild("HumanoidRootPart")
+                if er and (hrp.Position-er.Position).Magnitude<=truckDist then
+                    pcall(function() re:FireServer({"Truck",true}) end)
+                end
+            end
+        end
+    end)
+end
+
+-- Physics page
+local PhysicsPage,PhysicsScroll = makeScrollPage()
+local autoUnstunOn=false
+do
+    secHdr(PhysicsScroll,"TRUCK POWER")
+    local truckV=0; local truckActive=false
+    local _,getTv=makeSlider(PhysicsScroll,"TRUCK POWER",0,500,0,1,function(v) truckV=v end)
+    applyRow(PhysicsScroll,"Toggle Truck Power",function(btn)
+        local c=LocalPlayer.Character
+        if not c or not c:FindFirstChild("Hitbox") then
+            btn.Text="FAIL"; btn.BackgroundColor3=Color3.fromRGB(180,50,50)
+            task.delay(2,function() btn.Text="APPLY"; btn.BackgroundColor3=Color3.fromRGB(20,20,28) end); return
+        end
+        if truckActive then
+            truckActive=false; btn.Text="APPLY"; btn.BackgroundColor3=Color3.fromRGB(20,20,28)
+        else
+            truckActive=true; btn.Text="ON"; btn.BackgroundColor3=Color3.fromRGB(30,140,80)
+            fireToServer("Power",getTv())
+            task.spawn(function() while truckActive do task.wait(0.5); fireToServer("Power",getTv()) end end)
+        end
+    end)
+
+    secHdr(PhysicsScroll,"STUN")
+    local _,auBg,auKn=toggleRow(PhysicsScroll,"Auto Unstun")
+    local _setUnstun
+    local function runUnstun()
+        while autoUnstunOn and LocalPlayer.Character do
+            local c=LocalPlayer.Character
+            local hum=c:FindFirstChildOfClass("Humanoid")
+            if hum then pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end) end
+            local hb=c:FindFirstChild("Hitbox"); if hb then
+                local cv=hb:FindFirstChild("CharacterValues"); if cv then
+                    local dn=cv:FindFirstChild("Downed"); if dn then pcall(function() dn.Value=false end) end
+                    local tk=cv:FindFirstChild("Tackle"); if tk then pcall(function() tk.Value=false end) end
+                end
+            end
+            task.wait(0.1)
+        end
+    end
+    local function setUnstun(on)
+        autoUnstunOn=on; setSw(auBg,auKn,on)
+        if on then task.spawn(runUnstun); notif("Auto Unstun","Enabled",GREEN)
+        else notif("Auto Unstun","Disabled",RED) end
+    end
+    _setUnstun=setUnstun
+    auBg.MouseButton1Click:Connect(function() setUnstun(not autoUnstunOn) end)
+
+    local rbStunOn=false
+    local _,rbBg,rbKn=toggleRow(PhysicsScroll,"RB Stun Aura")
+    local function setRbStun(on)
+        rbStunOn=on; setSw(rbBg,rbKn,on)
+        local c=LocalPlayer.Character; if not c then return end
+        local hum=c:FindFirstChildOfClass("Humanoid"); if not hum then return end
+        local hb=c:FindFirstChild("Hitbox")
+        if on then
+            if hb then pcall(function() hb.CanTouch=false end) end
+            pcall(function() hum.PlatformStand=true end); notif("RB Stun","Enabled",GREEN)
+        else
+            if hb then pcall(function() hb.CanTouch=true end) end
+            pcall(function() hum.PlatformStand=false end); notif("RB Stun","Disabled",RED)
+        end
+    end
+    rbBg.MouseButton1Click:Connect(function() setRbStun(not rbStunOn) end)
+    LocalPlayer.CharacterAdded:Connect(function() task.wait(1); if autoUnstunOn then task.spawn(runUnstun) end end)
+
+    task.spawn(function()
+        while true do task.wait()
+            if autoUnstunOn then
+                local c=LocalPlayer.Character
+                local hb=c and c:FindFirstChild("Hitbox")
+                local cv=hb and hb:FindFirstChild("CharacterValues")
+                if cv then
+                    local dn=cv:FindFirstChild("Downed"); local tk=cv:FindFirstChild("Tackle")
+                    if dn and dn.Value then pcall(function() dn.Value=false end) end
+                    if tk and tk.Value then pcall(function() tk.Value=false end) end
+                end
+                local hum=c and c:FindFirstChildOfClass("Humanoid")
+                if hum and (hum:GetState()==Enum.HumanoidStateType.Physics or hum:GetState()==Enum.HumanoidStateType.FallingDown) then
+                    pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+                end
+            end
+        end
+    end)
+
+    secHdr(PhysicsScroll,"BLOCK / PBU")
+    local blockV=0; makeSlider(PhysicsScroll,"BLOCK POWER",0,1000,0,5,function(v) blockV=v end)
+    applyRow(PhysicsScroll,"Apply Block Power",function(btn)
+        fireToServer("BlockPower",blockV); btn.BackgroundColor3=Color3.fromRGB(30,140,80)
+        task.delay(1,function() btn.BackgroundColor3=Color3.fromRGB(20,20,28) end)
+    end)
+    local pbuV=0; makeSlider(PhysicsScroll,"PBU POWER",0,99,0,1,function(v) pbuV=v end)
+    applyRow(PhysicsScroll,"Apply PBU Power",function(btn)
+        fireToServer("PBU",pbuV); btn.BackgroundColor3=Color3.fromRGB(30,140,80)
+        task.delay(1,function() btn.BackgroundColor3=Color3.fromRGB(20,20,28) end)
+    end)
+end
+
+-- Local page
+local LocalPage,LocalScroll = makeScrollPage()
+do
+    secHdr(LocalScroll,"WALK SPEED")
+    inputRow(LocalScroll,"e.g. 24",function(n)
+        local hum=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed=n end
+    end)
+    secHdr(LocalScroll,"JUMP POWER")
+    inputRow(LocalScroll,"e.g. 75",function(n)
+        local hum=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.JumpPower=n end
+    end)
+end
+
+-- HSBL page
+local HSBLPage,HSBLScroll = makeScrollPage()
+local hasBall=false; local jumping=false; local _G_Aim=false; local _G_Pow=false; local satk=nil
+do
+    local function loadAnim(char)
+        satk=nil; local hum=char:FindFirstChildOfClass("Humanoid"); if not hum then return end
+        local anim=hum:FindFirstChildOfClass("Animator") or Instance.new("Animator",hum)
+        local bb=char:FindFirstChild("Basketball"); if not bb then return end
+        local af=bb:FindFirstChild("Animations"); if not af then return end
+        local sa=af:FindFirstChild("Shoot"); if sa then satk=anim:LoadAnimation(sa) end
+    end
+    local function getGoal()
+        local c=LocalPlayer.Character; local t=c and c:FindFirstChild("Torso"); if not t then return math.huge,nil end
+        local cl,gl=math.huge,nil
+        for _,v in ipairs(workspace:GetDescendants()) do
+            if v.Name=="Goal" then local d=(t.Position-v.Position).Magnitude; if d<cl then cl=d; gl=v end end
+        end
+        return cl,gl
+    end
+    local function getPow() local c=LocalPlayer.Character; if not c then return 0 end; local pv=c:FindFirstChild("PowerValue"); return pv and pv.Value or 0 end
+    local adjP=false
+    local function adjPow(tgt)
+        if adjP then return end; adjP=true
+        task.spawn(function()
+            local c=LocalPlayer.Character; if not c then adjP=false; return end
+            local ev=c:FindFirstChild("Events"); if not ev then adjP=false; return end
+            local up=ev:FindFirstChild("PowerUp"); local dn=ev:FindFirstChild("PowerDown")
+            local tries=0
+            while math.abs(getPow()-tgt)>1 and tries<80 do
+                if getPow()<tgt then pcall(function() if up then up:FireServer() end end)
+                else pcall(function() if dn then dn:FireServer() end end) end
+                tries=tries+1; task.wait(0.05)
+            end; adjP=false
+        end)
+    end
+    local function arcFor()
+        local d=math.floor(select(1,getGoal()))
+        local t={[12]=15,[13]=15,[14]=20,[15]=20,[16]=15,[17]=15,[18]=25,[19]=20,[20]=20,[21]=20,[22]=25,[23]=25,[24]=20,[25]=20,[26]=15,[27]=25,[28]=25,[29]=20,[30]=20,[31]=13,[32]=8,[33]=8,[34]=6,[35]=6,[36]=6,[37]=12,[38]=12,[39]=24,[40]=24,[41]=24,[42]=13,[43]=13,[44]=15,[45]=22,[46]=22,[47]=16,[48]=16,[49]=19,[50]=21,[51]=17,[52]=20,[53]=22,[54]=22,[55]=28,[56]=29,[57]=25,[58]=25,[59]=38,[60]=38,[61]=38,[62]=25,[63]=25,[64]=27,[65]=31,[66]=75,[67]=75,[68]=70,[69]=70,[70]=35,[71]=35,[72]=38,[73]=45,[74]=50,[75]=55,[76]=60}
+        if jumping and d<=12 then return d<=10 and 20 or 15 end
+        return t[d] or 60
+    end
+    local function doShoot()
+        local gl=select(2,getGoal()); local arc=arcFor(); if not gl or not _G_Aim then return end
+        local bb=LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Basketball")
+        if bb then local se=bb:FindFirstChild("ShootEvent"); if se then pcall(function() se:FireServer(LocalPlayer.Character.Humanoid,gl.Position+Vector3.new(0,arc,0)) end) end end
+    end
+    local function onJump()
+        if _G_Aim and hasBall then
+            jumping=true; if satk then pcall(function() satk:Play() end) end
+            task.wait(0.325); doShoot(); task.wait(0.1); jumping=false
+        end
+    end
+    RunService.Stepped:Connect(function()
+        if not _G_Pow or not hasBall or not LocalPlayer.Character then return end
+        local d=math.floor(select(1,getGoal()))
+        if jumping and d<=12 then adjPow(25) elseif d>=13 and d<=16 then adjPow(30)
+        elseif d<=21 then adjPow(35) elseif d<=26 then adjPow(40) elseif d<=31 then adjPow(45)
+        elseif d<=33 then adjPow(50) elseif d<=41 then adjPow(55) elseif d<=46 then adjPow(60)
+        elseif d<=50 then adjPow(65) elseif d<=56 then adjPow(70) elseif d<=61 then adjPow(75)
+        elseif d<=65 then adjPow(80) elseif d<=74 then adjPow(85) elseif d<=76 then adjPow(90) end
+    end)
+    local function hookChar(char)
+        task.wait(0.4); loadAnim(char)
+        pcall(function() char:WaitForChild("Humanoid").Jumping:Connect(onJump) end)
+        char.ChildAdded:Connect(function(v) if v.Name=="Basketball" then hasBall=true; loadAnim(char) end end)
+        char.ChildRemoved:Connect(function(v) if v.Name=="Basketball" then hasBall=false end end)
+    end
+    if LocalPlayer.Character then hookChar(LocalPlayer.Character) end
+    LocalPlayer.CharacterAdded:Connect(hookChar)
+
+    secHdr(HSBLScroll,"SILENT AIMBOT")
+    local _,aBg,aKn=toggleRow(HSBLScroll,"Aimbot Enabled")
+    local function setAim(on) _G_Aim=on; setSw(aBg,aKn,on); notif("HSBL Aimbot",on and "Enabled" or "Disabled",on and GREEN or RED) end
+    aBg.MouseButton1Click:Connect(function() setAim(not _G_Aim) end)
+
+    secHdr(HSBLScroll,"AUTO POWER")
+    local _,pBg,pKn=toggleRow(HSBLScroll,"Auto Power")
+    local function setPow(on) _G_Pow=on; setSw(pBg,pKn,on); notif("HSBL Auto Power",on and "Enabled" or "Disabled",on and GREEN or RED) end
+    pBg.MouseButton1Click:Connect(function() setPow(not _G_Pow) end)
+end
+
+-- Misc page
+local MiscPage,MiscScroll = makeScrollPage()
+do
+    secHdr(MiscScroll,"ANTI-CHEAT")
+    applyRow(MiscScroll,"Disable AC Now",function(btn)
+        runRCFA(); btn.Text="DONE"; btn.BackgroundColor3=Color3.fromRGB(30,140,80)
+        notif("RCFA","Disabled",GREEN); task.delay(2,function() btn.Text="APPLY"; btn.BackgroundColor3=Color3.fromRGB(20,20,28) end)
+    end)
+    secHdr(MiscScroll,"TOOLS")
+    applyRow(MiscScroll,"FPS Booster",function(btn)
+        btn.Text="RUNNING"; btn.BackgroundColor3=Color3.fromRGB(30,140,80)
+        pcall(function()
+            _G.Settings={Other={["FPS Cap"]=1000,["No Shadows"]=true,["Low Rendering"]=true}}
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/CasperFlyModz/discord.gg-rips/main/FPSBooster.lua"))()
+        end)
+        notif("FPS Booster","Applied",GREEN)
+    end)
+    applyRow(MiscScroll,"Infinite Yield",function(btn)
+        btn.Text="LOADING..."
+        task.spawn(function()
+            local ok=pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end)
+            btn.Text=ok and "LOADED" or "FAILED"; btn.BackgroundColor3=ok and Color3.fromRGB(30,140,80) or Color3.fromRGB(180,50,50)
+            notif("Infinite Yield",ok and "Loaded" or "Failed",ok and GREEN or RED)
+        end)
+    end)
+    secHdr(MiscScroll,"ANTI AFK")
+    local _,afkBg,afkKn=toggleRow(MiscScroll,"Anti AFK"); local afkOn=false; local afkConn=nil
+    afkBg.MouseButton1Click:Connect(function()
+        afkOn=not afkOn; setSw(afkBg,afkKn,afkOn)
+        if afkOn then
+            afkConn=RunService.Heartbeat:Connect(function()
+                local vu=LocalPlayer:FindFirstChild("VirtualUser")
+                if vu then pcall(function() vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame) end) end
+            end)
+            notif("Anti AFK","Enabled",GREEN)
+        else
+            if afkConn then afkConn:Disconnect(); afkConn=nil end
+            notif("Anti AFK","Disabled",RED)
+        end
+    end)
+    secHdr(MiscScroll,"KEYBINDS")
+    local kbRow=Instance.new("Frame"); kbRow.Size=UDim2.new(1,0,0,36); kbRow.BackgroundTransparency=1; kbRow.BorderSizePixel=0; kbRow.Parent=MiscScroll
+    local kbLbl=Instance.new("TextLabel"); kbLbl.Text="C=AutoTuck  U=AutoUnstun  H=ResetHitbox"; kbLbl.TextSize=10; kbLbl.TextColor3=TM; kbLbl.Font=Enum.Font.Gotham; kbLbl.BackgroundTransparency=1; kbLbl.TextXAlignment=Enum.TextXAlignment.Center; kbLbl.Size=UDim2.new(1,-32,1,0); kbLbl.Position=UDim2.new(0,16,0,0); kbLbl.Parent=kbRow
+    secHdr(MiscScroll,"INFO")
+    local ir=Instance.new("Frame"); ir.Size=UDim2.new(1,0,0,34); ir.BackgroundTransparency=1; ir.BorderSizePixel=0; ir.Parent=MiscScroll
+    local il=Instance.new("TextLabel"); il.Text="Apex RF  |  "..executorName; il.TextSize=10; il.TextColor3=TM; il.Font=Enum.Font.Gotham; il.BackgroundTransparency=1; il.TextXAlignment=Enum.TextXAlignment.Center; il.Size=UDim2.new(1,-32,1,0); il.Position=UDim2.new(0,16,0,0); il.Parent=ir
+end
+
+-- auto hitbox resize when holding ball
+local userHitboxSize = Vector3.new(5,7,5) -- default, syncs with magnet slider
+local function watchBallInHand()
+    local char = LocalPlayer.Character; if not char then return end
+    local hb = char:FindFirstChild("Hitbox"); if not hb then return end
+    char.ChildAdded:Connect(function(child)
+        if child.Name == "Football" and child:IsA("Tool") then
+            task.wait(0.05)
+            pcall(function() hb.Size = Vector3.new(1, 2.2, 1) end)
+        end
+    end)
+    char.ChildRemoved:Connect(function(child)
+        if child.Name == "Football" and child:IsA("Tool") then
+            task.wait(0.05)
+            pcall(function() hb.Size = userHitboxSize end)
+        end
+    end)
+end
+if LocalPlayer.Character then watchBallInHand() end
+LocalPlayer.CharacterAdded:Connect(function(c)
+    task.wait(1); watchBallInHand()
+end)
+
+-- keep userHitboxSize in sync with magnet slider
+-- (we patch the slider callback by wrapping fireToServer calls)
+
+-- keybinds
+local UIS2 = game:GetService("UserInputService")
+local KB_TUCK   = Enum.KeyCode.C
+local KB_UNSTUN = Enum.KeyCode.U
+local KB_RESETHB = Enum.KeyCode.H
+
+UIS2.InputBegan:Connect(function(inp, proc)
+    if proc then return end
+    if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+    if inp.KeyCode == KB_TUCK then
+        autoTuckEnabled = not autoTuckEnabled
+        notif("Auto Tuck", autoTuckEnabled and "On" or "Off", autoTuckEnabled and GREEN or RED)
+    end
+    if inp.KeyCode == KB_UNSTUN then
+        autoUnstunOn = not autoUnstunOn
+        notif("Auto Unstun", autoUnstunOn and "On" or "Off", autoUnstunOn and GREEN or RED)
+    end
+    if inp.KeyCode == KB_RESETHB then
+        pcall(function()
+            local c = LocalPlayer.Character; if not c then return end
+            local hb = c:FindFirstChild("Hitbox"); if not hb then return end
+            hb.Size = Vector3.new(4, 6, 4)
+            userHitboxSize = Vector3.new(4, 6, 4)
+        end)
+        notif("Hitbox", "Reset to default", AC)
+    end
+end)
+
+addRCFANav({
+    {label="QB",        icon="QB", page=QBPage},
+    {label="Catching",  icon="CT", page=CatchPage},
+    {label="Automation",icon="AU", page=AutoPage},
+    {label="Physics",   icon="PH", page=PhysicsPage},
+    {label="Local",     icon="LC", page=LocalPage},
+})
+addSimpleNav("HSBL","BB",HSBLPage)
+addSimpleNav("Misc","MC",MiscPage)
+finalizeNav()
+
+notif("Apex RF","Loaded  |  Press M to toggle",AC)
+end)
