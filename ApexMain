@@ -16,7 +16,7 @@ local Players = game:GetService("Players")
 
 local WHITELISTED_USERNAMES = {
 	["xX24k_DreamsX"] = true,
-	["AnotherUsername"] = true,
+	["flyingcloudq"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
