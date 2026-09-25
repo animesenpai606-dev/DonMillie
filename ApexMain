@@ -2,8 +2,63 @@ repeat task.wait() until game:IsLoaded()
 task.spawn(function()
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Player = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local Mouse = Player:GetMouse()
+local TeleportService = game:GetService("TeleportService")
+
+local Players = game:GetService("Players")
+
+local WHITELISTED_USERNAMES = {
+	["xX24k_DreamsX"] = true,
+	["AnotherUsername"] = true,
+}
+
+local WHITELISTED_USER_IDS = {
+	[123456789] = true,
+	[987654321] = true,
+}
+
+local KICK_MESSAGE = "You are not authorized to use this script."
+
+local function isWhitelisted(player)
+	-- UserId is more reliable because usernames can change.
+	if WHITELISTED_USER_IDS[player.UserId] then
+		return true
+	end
+
+	-- Case-insensitive username check.
+	local username = string.lower(player.Name)
+
+	for whitelistedName in pairs(WHITELISTED_USERNAMES) do
+		if username == string.lower(whitelistedName) then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function checkPlayer(player)
+	if not isWhitelisted(player) then
+		player:Kick(KICK_MESSAGE)
+		return
+	end
+
+	print("[Whitelist] Allowed: " .. player.Name)
+end
+
+Players.PlayerAdded:Connect(checkPlayer)
+
+-- Handles players already present if the script reloads in Studio.
+for _, player in ipairs(Players:GetPlayers()) do
+	task.spawn(checkPlayer, player)
+end
 
 local function detectExecutor()
     if syn and syn.request then return "Synapse X" end
@@ -68,6 +123,8 @@ local rcfaTargets = {
     function() local c=LocalPlayer.Character; return c and c:FindFirstChild("Hitbox") and c.Hitbox:FindFirstChild("HitboxSync") end,
     function() return LocalPlayer:FindFirstChild("PlayerScripts") and LocalPlayer.PlayerScripts:FindFirstChild("Magged") end,
     function() return game:GetService("ServerScriptService"):FindFirstChild("AntiCheat") end,
+    function() return game:GetService("ReplicatedFirst"):FindFirstChild("ClientBootstrap") end,
+    function() return game:GetService("ReplicatedFirst"):FindFirstChild("Script") end,
     function() return game:GetService("ServerScriptService"):FindFirstChild("AntiMag") end,
     function() return game:GetService("ServerScriptService"):FindFirstChild("Cheater") end,
     function()
