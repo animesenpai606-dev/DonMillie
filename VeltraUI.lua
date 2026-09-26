@@ -35,7 +35,7 @@ local GUI_W   = 700
 local GUI_H   = 500
 local SB_W    = 152
 local TB_H    = 46
-local toggleKey = Enum.KeyCode.K
+local toggleKey = Enum.KeyCode.LeftAlt
 local isMobile  = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 -- HELPERS ───────────────────────────────────────────────────────────────────
