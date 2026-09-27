@@ -19,7 +19,7 @@ local WHITELISTED_USERNAMES = {
 	["flyingcloudq"] = true,
     ["9Mxgs"] = true,
     ["redzonethreats"] = true,
-    ["quindread"] = true,
+    ["quindread"] = true, -- Owes me 200 robux
 }
 
 local WHITELISTED_USER_IDS = {
