@@ -18,6 +18,7 @@ local WHITELISTED_USERNAMES = {
 	["xX24k_DreamsX"] = true,
 	["flyingcloudq"] = true,
     ["9Mxgs"] = true,
+    ["redzonethreats"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
