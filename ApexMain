@@ -20,7 +20,7 @@ local WHITELISTED_USERNAMES = {
     ["9Mxgs"] = true,
     ["redzonethreats"] = true,
     ["quindread"] = true, -- Owes me 200 robux
-    ["Lulbabyk4"] = false,
+    ["Lulbabyk4"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
