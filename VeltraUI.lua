@@ -85,7 +85,7 @@ local function setSw(bg, knob, on)
 end
 
 -- SCREENGUI + WINDOW ───────────────────────────────────────────────────────
-local ScreenGui = mk("ScreenGui",{Name="ApexHub",ResetOnSpawn=false,
+local ScreenGui = mk("ScreenGui",{Name="Scoreboard67",ResetOnSpawn=false,
     ZIndexBehavior=Enum.ZIndexBehavior.Sibling,Parent=LocalPlayer:WaitForChild("PlayerGui")})
 
 local cam = workspace.CurrentCamera or workspace:WaitForChild("Camera",5)
