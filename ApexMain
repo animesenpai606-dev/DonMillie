@@ -27,7 +27,7 @@ local WHITELISTED_USERNAMES = {
 }
 
 local WHITELISTED_USER_IDS = {
-	[123456789] = true,
+	[1163521541] = true,
 	[987654321] = true,
 }
 
