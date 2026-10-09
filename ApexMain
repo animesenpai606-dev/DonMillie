@@ -666,6 +666,6 @@ addSimpleNav("Misc","MC",MiscPage)
 finalizeNav()
 
 notif("Apex RF","Loaded  |  Press M to toggle",AC)
-wait(3)
-notif("Xeno Support will be ending soon", "Message the seller for a compatable executor")
+wait(5)
+notif("Xeno & Solara","May not be compatable with the next update",AC)
 end)
