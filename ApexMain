@@ -25,6 +25,7 @@ local WHITELISTED_USERNAMES = {
     ["Vxmpsbtw"] = true,
     ["Kremhuntt"] = true,
     ["Imbalancedinfball"] = true,
+    ["DSCopSnop"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
