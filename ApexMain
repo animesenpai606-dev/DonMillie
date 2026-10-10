@@ -27,6 +27,7 @@ local WHITELISTED_USERNAMES = {
     ["Imbalancedinfball"] = true,
     ["DSCopSnop"] = true,
     ["Papa198421"] = true,
+    ["BeverlyHillq'] = true,
 }
 
 local WHITELISTED_USER_IDS = {
