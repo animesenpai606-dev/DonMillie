@@ -29,7 +29,7 @@ local WHITELISTED_USERNAMES = {
     ["Papa198421"] = true,
     ["BeverlyHillq"] = true,
     ["finessin_72"] = true,
-    ["eq9tf"] = true,
+    ["eq8tf"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
