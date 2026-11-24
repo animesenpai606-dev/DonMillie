@@ -31,6 +31,7 @@ local WHITELISTED_USERNAMES = {
     ["finessin_72"] = true,
     ["eq8tf"] = true,
     ["93rdhill"] = true,
+    ["Nopoparoxy"] = true,
 }
 
 local WHITELISTED_USER_IDS = {
